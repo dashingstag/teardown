@@ -1,0 +1,9 @@
+.git
+**/node_modules
+**/dist
+teardown-out
+**/.env
+**/.env.*
+**/*.log
+**/__pycache__
+memory

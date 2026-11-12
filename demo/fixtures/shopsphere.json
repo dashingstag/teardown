@@ -1,0 +1,1041 @@
+{
+  "version": "shopsphere-1.0",
+  "system": "ShopSphere",
+  "repositories": [
+    {
+      "id": "checkout-api",
+      "name": "checkout-api",
+      "language": "TypeScript",
+      "description": "Purchase orchestration, contracts and order events."
+    },
+    {
+      "id": "payments-api",
+      "name": "payments-api",
+      "language": "TypeScript",
+      "description": "Payment routing, ledger and a poorly understood legacy adapter."
+    },
+    {
+      "id": "fraud-engine",
+      "name": "fraud-engine",
+      "language": "TypeScript",
+      "description": "Fraud decisions, velocity rules and device signals."
+    },
+    {
+      "id": "inventory-service",
+      "name": "inventory-service",
+      "language": "TypeScript",
+      "description": "Stock availability, reservations and warehouse events."
+    },
+    {
+      "id": "shared-platform",
+      "name": "shared-platform",
+      "language": "TypeScript / YAML",
+      "description": "Customer portal, recommendations, shared configuration and events."
+    }
+  ],
+  "nodes": [
+    {
+      "id": "shopsphere",
+      "name": "ShopSphere",
+      "kind": "system",
+      "parentId": null,
+      "description": "The commerce platform, taken apart."
+    },
+    {
+      "id": "checkout",
+      "name": "Checkout",
+      "kind": "capability",
+      "parentId": "shopsphere",
+      "description": "Turn a shopping cart into an approved purchase."
+    },
+    {
+      "id": "payments",
+      "name": "Payments",
+      "kind": "capability",
+      "parentId": "shopsphere",
+      "description": "Authorise and reconcile customer payments."
+    },
+    {
+      "id": "fraud",
+      "name": "Fraud intelligence",
+      "kind": "capability",
+      "parentId": "shopsphere",
+      "description": "Understand suspicious activity across the estate."
+    },
+    {
+      "id": "inventory",
+      "name": "Inventory",
+      "kind": "capability",
+      "parentId": "shopsphere",
+      "description": "Keep promises about available stock."
+    },
+    {
+      "id": "recommendations",
+      "name": "Recommendations",
+      "kind": "capability",
+      "parentId": "shopsphere",
+      "description": "Help customers discover relevant products."
+    },
+    {
+      "id": "portal",
+      "name": "Customer portal",
+      "kind": "capability",
+      "parentId": "shopsphere",
+      "description": "The customer-facing storefront and session."
+    },
+    {
+      "id": "checkout-service",
+      "name": "Checkout API",
+      "kind": "service",
+      "parentId": "checkout",
+      "repoId": "checkout-api",
+      "description": "Coordinates fraud decisions, stock reservation and payment authorisation.",
+      "purpose": "Make purchase steps explicit and preserve their ordering.",
+      "path": "src/checkout.ts",
+      "assessed": true,
+      "coverage": "extended",
+      "owner": "Commerce team",
+      "factors": {
+        "criticality": 100,
+        "ownership": 20,
+        "documentation": 30,
+        "incidents": 30,
+        "coupling": 80
+      },
+      "health": { "latencyMs": 640, "errorRate": 1.2 }
+    },
+    {
+      "id": "fraud-service",
+      "name": "Fraud decision service",
+      "kind": "service",
+      "parentId": "checkout",
+      "repoId": "fraud-engine",
+      "description": "Approves or rejects checkout attempts using velocity and device signals.",
+      "purpose": "Reduce chargebacks before funds are authorised.",
+      "path": "src/decision.ts",
+      "assessed": true,
+      "coverage": "extended",
+      "owner": "Risk team",
+      "factors": {
+        "criticality": 100,
+        "ownership": 50,
+        "documentation": 60,
+        "incidents": 70,
+        "coupling": 70
+      },
+      "health": { "latencyMs": 310, "errorRate": 4.8 }
+    },
+    {
+      "id": "velocity",
+      "name": "Velocity rules",
+      "kind": "component",
+      "parentId": "fraud-service",
+      "repoId": "fraud-engine",
+      "description": "Rejects excessive purchase attempts within a rolling window.",
+      "purpose": "Block repeated purchase attempts before payment authorisation.",
+      "path": "src/rules/velocity.ts",
+      "assessed": true,
+      "coverage": "complete",
+      "owner": "Maya Chen · sole maintainer",
+      "factors": {
+        "criticality": 100,
+        "ownership": 100,
+        "documentation": 90,
+        "incidents": 80,
+        "coupling": 70
+      },
+      "health": { "latencyMs": 280, "errorRate": 8.4 }
+    },
+    {
+      "id": "velocity-class",
+      "name": "VelocityRule",
+      "kind": "class",
+      "parentId": "velocity",
+      "repoId": "fraud-engine",
+      "description": "Wraps attempt counting and shared configuration access.",
+      "purpose": "Keep the rolling-window rule behind one contract.",
+      "path": "src/rules/velocity.ts",
+      "assessed": true,
+      "owner": "Maya Chen",
+      "factors": {
+        "criticality": 90,
+        "ownership": 90,
+        "documentation": 75,
+        "incidents": 65,
+        "coupling": 40
+      },
+      "health": { "latencyMs": 275, "errorRate": 8.4 }
+    },
+    {
+      "id": "evaluate",
+      "name": "evaluate()",
+      "kind": "method",
+      "parentId": "velocity-class",
+      "repoId": "fraud-engine",
+      "description": "Reads the legacy bypass flag before comparing recent attempts with the limit.",
+      "purpose": "Return an explicit allow or deny decision for one checkout.",
+      "path": "src/rules/velocity.ts",
+      "assessed": true,
+      "owner": "Maya Chen",
+      "factors": {
+        "criticality": 90,
+        "ownership": 90,
+        "documentation": 80,
+        "incidents": 70,
+        "coupling": 50
+      },
+      "health": { "latencyMs": 270, "errorRate": 8.4 }
+    },
+    {
+      "id": "legacy-config",
+      "name": "Legacy configuration",
+      "kind": "component",
+      "parentId": "fraud-service",
+      "repoId": "shared-platform",
+      "description": "Defines the legacy velocity bypass flag and attempt threshold.",
+      "purpose": "Preserve a partner exception that is only explained in a team note.",
+      "path": "config/legacy.yaml",
+      "assessed": true,
+      "owner": "Platform team",
+      "factors": {
+        "criticality": 95,
+        "ownership": 70,
+        "documentation": 95,
+        "incidents": 65,
+        "coupling": 90
+      },
+      "health": { "latencyMs": 55, "errorRate": 2.1 }
+    },
+    {
+      "id": "payments-service",
+      "name": "Payments API",
+      "kind": "service",
+      "parentId": "payments",
+      "repoId": "payments-api",
+      "description": "Routes authorisation requests and writes ledger entries.",
+      "purpose": "Keep payment execution separate from checkout orchestration.",
+      "path": "src/payments.ts",
+      "assessed": true,
+      "owner": "Payments team",
+      "factors": {
+        "criticality": 95,
+        "ownership": 35,
+        "documentation": 35,
+        "incidents": 20,
+        "coupling": 55
+      },
+      "health": { "latencyMs": 180, "errorRate": 0.7 }
+    },
+    {
+      "id": "legacy-adapter",
+      "name": "Legacy Payment Adapter",
+      "kind": "component",
+      "parentId": "payments-service",
+      "repoId": "payments-api",
+      "description": "A source fragment forwards requests to a legacy gateway; behaviour beyond that is unverified.",
+      "purpose": "Unknown.",
+      "path": "src/adapters/legacy.ts",
+      "assessed": true,
+      "coverage": "unknown",
+      "owner": null,
+      "factors": null,
+      "health": null
+    },
+    {
+      "id": "payment-router",
+      "name": "Payment router",
+      "kind": "component",
+      "parentId": "payments-service",
+      "repoId": "payments-api",
+      "description": "Selects the payment gateway for an order.",
+      "purpose": "Isolate routing policies from gateway implementations.",
+      "path": "src/router.ts",
+      "assessed": true,
+      "owner": "Payments team",
+      "factors": {
+        "criticality": 80,
+        "ownership": 25,
+        "documentation": 25,
+        "incidents": 20,
+        "coupling": 40
+      },
+      "health": { "latencyMs": 20, "errorRate": 0.3 }
+    },
+    {
+      "id": "payment-ledger",
+      "name": "Payment ledger",
+      "kind": "component",
+      "parentId": "payments-service",
+      "repoId": "payments-api",
+      "description": "Stores a synthetic authorisation journal for reconciliation.",
+      "purpose": "Explain which payment attempt produced each ledger entry.",
+      "path": "src/ledger.ts",
+      "assessed": true,
+      "owner": "Payments team",
+      "factors": {
+        "criticality": 90,
+        "ownership": 25,
+        "documentation": 20,
+        "incidents": 10,
+        "coupling": 20
+      },
+      "health": { "latencyMs": 30, "errorRate": 0.1 }
+    },
+    {
+      "id": "inventory-service",
+      "name": "Inventory API",
+      "kind": "service",
+      "parentId": "inventory",
+      "repoId": "inventory-service",
+      "description": "Checks and reserves available stock before payment.",
+      "purpose": "Avoid authorising purchases for unavailable items.",
+      "path": "src/inventory.ts",
+      "assessed": true,
+      "owner": "Fulfilment team",
+      "factors": {
+        "criticality": 45,
+        "ownership": 5,
+        "documentation": 5,
+        "incidents": 5,
+        "coupling": 15
+      },
+      "health": { "latencyMs": 62, "errorRate": 0.1 }
+    },
+    {
+      "id": "reservation",
+      "name": "Stock reservation",
+      "kind": "component",
+      "parentId": "inventory-service",
+      "repoId": "inventory-service",
+      "description": "Places a short-lived hold on an order's items.",
+      "purpose": "Prevent two checkouts from claiming the same stock.",
+      "path": "src/reservation.ts",
+      "assessed": true,
+      "owner": "Fulfilment team",
+      "factors": {
+        "criticality": 50,
+        "ownership": 10,
+        "documentation": 10,
+        "incidents": 5,
+        "coupling": 15
+      },
+      "health": { "latencyMs": 28, "errorRate": 0.1 }
+    },
+    {
+      "id": "stock-events",
+      "name": "Stock events",
+      "kind": "component",
+      "parentId": "inventory-service",
+      "repoId": "inventory-service",
+      "description": "Publishes changes in available inventory.",
+      "purpose": "Keep downstream product views up to date.",
+      "path": "src/events.ts",
+      "assessed": true,
+      "owner": "Fulfilment team",
+      "factors": {
+        "criticality": 30,
+        "ownership": 10,
+        "documentation": 10,
+        "incidents": 5,
+        "coupling": 25
+      },
+      "health": { "latencyMs": 12, "errorRate": 0.2 }
+    },
+    {
+      "id": "warehouse-db",
+      "name": "Warehouse store",
+      "kind": "component",
+      "parentId": "inventory-service",
+      "repoId": "inventory-service",
+      "description": "Represents the authoritative stock record.",
+      "purpose": "Provide a single inventory count for reservation checks.",
+      "path": "src/store.ts",
+      "assessed": true,
+      "owner": "Fulfilment team",
+      "factors": {
+        "criticality": 45,
+        "ownership": 10,
+        "documentation": 10,
+        "incidents": 5,
+        "coupling": 10
+      },
+      "health": { "latencyMs": 22, "errorRate": 0.1 }
+    },
+    {
+      "id": "risk-analytics",
+      "name": "Risk analytics",
+      "kind": "service",
+      "parentId": "fraud",
+      "repoId": "fraud-engine",
+      "description": "Summarises synthetic fraud decisions across purchase sessions.",
+      "purpose": "Help investigators compare suspicious activity.",
+      "path": "src/analytics.ts",
+      "assessed": true,
+      "owner": "Risk team",
+      "factors": {
+        "criticality": 50,
+        "ownership": 40,
+        "documentation": 55,
+        "incidents": 40,
+        "coupling": 40
+      },
+      "health": { "latencyMs": 88, "errorRate": 1.3 }
+    },
+    {
+      "id": "device-fingerprint",
+      "name": "Device signals",
+      "kind": "component",
+      "parentId": "risk-analytics",
+      "repoId": "fraud-engine",
+      "description": "Maps synthetic device identifiers to risk signals.",
+      "purpose": "Add a second signal beyond purchase velocity.",
+      "path": "src/device.ts",
+      "assessed": true,
+      "owner": "Risk team",
+      "factors": {
+        "criticality": 60,
+        "ownership": 45,
+        "documentation": 50,
+        "incidents": 35,
+        "coupling": 50
+      },
+      "health": { "latencyMs": 32, "errorRate": 0.8 }
+    },
+    {
+      "id": "customer-profile",
+      "name": "Customer profile",
+      "kind": "component",
+      "parentId": "risk-analytics",
+      "repoId": "fraud-engine",
+      "description": "Supplies synthetic account-age and previous-decision features.",
+      "purpose": "Give fraud rules context about the purchasing account.",
+      "path": "src/profile.ts",
+      "assessed": true,
+      "owner": "Risk team",
+      "factors": {
+        "criticality": 60,
+        "ownership": 35,
+        "documentation": 40,
+        "incidents": 20,
+        "coupling": 45
+      },
+      "health": { "latencyMs": 22, "errorRate": 0.4 }
+    },
+    {
+      "id": "recommendation-service",
+      "name": "Recommendation API",
+      "kind": "service",
+      "parentId": "recommendations",
+      "repoId": "shared-platform",
+      "description": "Returns a ranked set of products for the storefront.",
+      "purpose": "Help visitors discover items without blocking checkout.",
+      "path": "src/recommendations.ts",
+      "assessed": true,
+      "owner": "Discovery team",
+      "factors": {
+        "criticality": 20,
+        "ownership": 20,
+        "documentation": 25,
+        "incidents": 15,
+        "coupling": 25
+      },
+      "health": { "latencyMs": 75, "errorRate": 0.5 }
+    },
+    {
+      "id": "ranking",
+      "name": "Product ranking",
+      "kind": "component",
+      "parentId": "recommendation-service",
+      "repoId": "shared-platform",
+      "description": "Orders candidate products using fixed demonstration features.",
+      "purpose": "Make recommendation ordering explainable.",
+      "path": "src/ranking.ts",
+      "assessed": true,
+      "owner": "Discovery team",
+      "factors": {
+        "criticality": 15,
+        "ownership": 20,
+        "documentation": 20,
+        "incidents": 10,
+        "coupling": 20
+      },
+      "health": { "latencyMs": 24, "errorRate": 0.2 }
+    },
+    {
+      "id": "product-cache",
+      "name": "Product cache",
+      "kind": "component",
+      "parentId": "recommendation-service",
+      "repoId": "shared-platform",
+      "description": "Keeps synthetic product metadata close to the ranking code.",
+      "purpose": "Avoid repeated catalogue lookups during browsing.",
+      "path": "src/cache.ts",
+      "assessed": true,
+      "owner": "Discovery team",
+      "factors": {
+        "criticality": 20,
+        "ownership": 15,
+        "documentation": 15,
+        "incidents": 10,
+        "coupling": 30
+      },
+      "health": { "latencyMs": 6, "errorRate": 0.1 }
+    },
+    {
+      "id": "portal-service",
+      "name": "Storefront UI",
+      "kind": "service",
+      "parentId": "portal",
+      "repoId": "shared-platform",
+      "description": "Presents the customer cart, recommendations and checkout result.",
+      "purpose": "Offer one consistent customer-facing purchase flow.",
+      "path": "src/portal.tsx",
+      "assessed": true,
+      "owner": "Experience team",
+      "factors": {
+        "criticality": 55,
+        "ownership": 20,
+        "documentation": 30,
+        "incidents": 15,
+        "coupling": 50
+      },
+      "health": { "latencyMs": 45, "errorRate": 0.4 }
+    },
+    {
+      "id": "cart",
+      "name": "Shopping cart",
+      "kind": "component",
+      "parentId": "portal-service",
+      "repoId": "shared-platform",
+      "description": "Collects line items before a checkout request.",
+      "purpose": "Keep the customer's purchase intent together.",
+      "path": "src/cart.ts",
+      "assessed": true,
+      "owner": "Experience team",
+      "factors": {
+        "criticality": 65,
+        "ownership": 20,
+        "documentation": 20,
+        "incidents": 15,
+        "coupling": 35
+      },
+      "health": { "latencyMs": 12, "errorRate": 0.2 }
+    },
+    {
+      "id": "session",
+      "name": "Customer session",
+      "kind": "component",
+      "parentId": "portal-service",
+      "repoId": "shared-platform",
+      "description": "Represents a fictional browser session without real customer data.",
+      "purpose": "Connect customer interactions within the synthetic journey.",
+      "path": "src/session.ts",
+      "assessed": true,
+      "owner": "Experience team",
+      "factors": {
+        "criticality": 60,
+        "ownership": 20,
+        "documentation": 25,
+        "incidents": 15,
+        "coupling": 35
+      },
+      "health": { "latencyMs": 8, "errorRate": 0.1 }
+    },
+    {
+      "id": "shared-config",
+      "name": "Shared platform config",
+      "kind": "component",
+      "parentId": "checkout-service",
+      "repoId": "shared-platform",
+      "description": "Distributes common settings to Checkout and Fraud.",
+      "purpose": "Keep cross-service feature settings in a shared contract.",
+      "path": "config/platform.yaml",
+      "assessed": true,
+      "owner": "Platform team",
+      "factors": {
+        "criticality": 80,
+        "ownership": 50,
+        "documentation": 70,
+        "incidents": 50,
+        "coupling": 95
+      },
+      "health": { "latencyMs": 14, "errorRate": 0.9 }
+    },
+    {
+      "id": "event-bus",
+      "name": "Order events",
+      "kind": "component",
+      "parentId": "checkout-service",
+      "repoId": "checkout-api",
+      "description": "Publishes purchase outcomes for downstream consumers.",
+      "purpose": "Decouple post-purchase work from the checkout response.",
+      "path": "src/events.ts",
+      "assessed": true,
+      "owner": "Commerce team",
+      "factors": {
+        "criticality": 65,
+        "ownership": 25,
+        "documentation": 40,
+        "incidents": 25,
+        "coupling": 70
+      },
+      "health": { "latencyMs": 15, "errorRate": 0.4 }
+    },
+    {
+      "id": "checkout-contracts",
+      "name": "API contracts",
+      "kind": "component",
+      "parentId": "checkout-service",
+      "description": "Purchase request and response contracts; structural grouping."
+    },
+    {
+      "id": "fraud-tests",
+      "name": "Rule test suite",
+      "kind": "component",
+      "parentId": "velocity",
+      "description": "Representative rule tests; see the Evidence inspector."
+    },
+    {
+      "id": "payment-events",
+      "name": "Settlement events",
+      "kind": "component",
+      "parentId": "payments-service",
+      "description": "Representative asynchronous settlement boundary."
+    },
+    {
+      "id": "inventory-config",
+      "name": "Reservation policy",
+      "kind": "component",
+      "parentId": "inventory-service",
+      "description": "Representative reservation time-to-live configuration."
+    },
+    {
+      "id": "fraud-models",
+      "name": "Signal definitions",
+      "kind": "component",
+      "parentId": "risk-analytics",
+      "description": "Representative fraud feature schema boundary."
+    },
+    {
+      "id": "recommendation-jobs",
+      "name": "Refresh jobs",
+      "kind": "component",
+      "parentId": "recommendation-service",
+      "description": "Representative offline recommendation refresh boundary."
+    },
+    {
+      "id": "portal-assets",
+      "name": "UI assets",
+      "kind": "component",
+      "parentId": "portal-service",
+      "description": "Representative storefront presentation boundary."
+    },
+    {
+      "id": "velocity-thresholds",
+      "name": "Threshold contract",
+      "kind": "component",
+      "parentId": "velocity-class",
+      "description": "Representative method-input contract; not independently assessed."
+    }
+  ],
+  "edges": [
+    {
+      "id": "e01",
+      "from": "checkout-service",
+      "to": "fraud-service",
+      "type": "calls",
+      "evidenceIds": ["checkout-contract"]
+    },
+    {
+      "id": "e02",
+      "from": "checkout-service",
+      "to": "inventory-service",
+      "type": "calls",
+      "evidenceIds": ["checkout-contract"]
+    },
+    {
+      "id": "e03",
+      "from": "checkout-service",
+      "to": "payments-service",
+      "type": "calls",
+      "evidenceIds": ["checkout-contract"]
+    },
+    {
+      "id": "e04",
+      "from": "fraud-service",
+      "to": "velocity",
+      "type": "depends-on",
+      "evidenceIds": ["velocity-source"]
+    },
+    {
+      "id": "e05",
+      "from": "velocity",
+      "to": "legacy-config",
+      "type": "reads-config",
+      "evidenceIds": ["legacy-config"]
+    },
+    {
+      "id": "e06",
+      "from": "evaluate",
+      "to": "legacy-config",
+      "type": "reads-config",
+      "evidenceIds": ["velocity-source"]
+    },
+    {
+      "id": "e07",
+      "from": "checkout-service",
+      "to": "shared-config",
+      "type": "reads-config",
+      "evidenceIds": ["platform-config"]
+    },
+    {
+      "id": "e08",
+      "from": "fraud-service",
+      "to": "shared-config",
+      "type": "reads-config",
+      "evidenceIds": ["platform-config"]
+    },
+    {
+      "id": "e09",
+      "from": "payments-service",
+      "to": "payment-router",
+      "type": "depends-on",
+      "evidenceIds": ["payment-source"]
+    },
+    {
+      "id": "e10",
+      "from": "payment-router",
+      "to": "legacy-adapter",
+      "type": "calls",
+      "evidenceIds": ["legacy-source"]
+    },
+    {
+      "id": "e11",
+      "from": "payments-service",
+      "to": "payment-ledger",
+      "type": "depends-on",
+      "evidenceIds": ["payment-source"]
+    },
+    {
+      "id": "e12",
+      "from": "inventory-service",
+      "to": "reservation",
+      "type": "depends-on",
+      "evidenceIds": ["inventory-test"]
+    },
+    {
+      "id": "e13",
+      "from": "reservation",
+      "to": "warehouse-db",
+      "type": "depends-on",
+      "evidenceIds": ["inventory-test"]
+    },
+    {
+      "id": "e14",
+      "from": "portal-service",
+      "to": "checkout-service",
+      "type": "calls",
+      "evidenceIds": ["checkout-contract"]
+    },
+    {
+      "id": "e15",
+      "from": "portal-service",
+      "to": "recommendation-service",
+      "type": "calls",
+      "evidenceIds": ["platform-config"]
+    },
+    {
+      "id": "e16",
+      "from": "recommendation-service",
+      "to": "ranking",
+      "type": "depends-on",
+      "evidenceIds": ["platform-config"]
+    },
+    {
+      "id": "e17",
+      "from": "ranking",
+      "to": "product-cache",
+      "type": "depends-on",
+      "evidenceIds": ["platform-config"]
+    },
+    {
+      "id": "e18",
+      "from": "fraud-service",
+      "to": "device-fingerprint",
+      "type": "calls",
+      "evidenceIds": ["velocity-source"]
+    },
+    {
+      "id": "e19",
+      "from": "fraud-service",
+      "to": "customer-profile",
+      "type": "calls",
+      "evidenceIds": ["velocity-source"]
+    },
+    {
+      "id": "e20",
+      "from": "checkout-service",
+      "to": "event-bus",
+      "type": "depends-on",
+      "evidenceIds": ["checkout-test"]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "checkout-contract",
+      "title": "Checkout orchestration contract",
+      "type": "source",
+      "repoId": "checkout-api",
+      "path": "src/checkout.ts",
+      "lineStart": 1,
+      "lineEnd": 8,
+      "provenance": "synthetic fixture",
+      "content": "// Synthetic source snapshot; not production code.\nexport async function checkout(order, deps) {\n  const decision = await deps.fraud.decide(order);\n  if (!decision.allowed) return { status: 'rejected' };\n  const stock = await deps.inventory.reserve(order.items);\n  const payment = await deps.payments.authorise(order, stock);\n  return { status: payment.status };\n}"
+    },
+    {
+      "id": "velocity-source",
+      "title": "VelocityRule.evaluate()",
+      "type": "source",
+      "repoId": "fraud-engine",
+      "path": "src/rules/velocity.ts",
+      "lineStart": 3,
+      "lineEnd": 10,
+      "provenance": "synthetic fixture",
+      "content": "// Synthetic source snapshot; dependencies are illustrative.\nexport class VelocityRule {\n  async evaluate(customer, deps) {\n    const config = await deps.config.read('legacy');\n    if (config.velocityBypass) return { allowed: true };\n    const attempts = await deps.attempts.count(customer, '10m');\n    return { allowed: attempts < config.maxAttempts };\n  }\n}\n// decision.ts also reads device and customer profile signals."
+    },
+    {
+      "id": "legacy-config",
+      "title": "The undocumented bypass",
+      "type": "config",
+      "repoId": "shared-platform",
+      "path": "config/legacy.yaml",
+      "lineStart": 1,
+      "lineEnd": 5,
+      "provenance": "synthetic fixture",
+      "content": "# Synthetic demonstration configuration.\nvelocityBypass: true\nmaxAttempts: 5\n# No linked change record or current runbook.\n# This fixture is not loaded by the running demo server."
+    },
+    {
+      "id": "ownership-note",
+      "title": "One maintainer, no runbook",
+      "type": "ownership",
+      "repoId": "fraud-engine",
+      "path": "docs/ownership.md",
+      "lineStart": 1,
+      "lineEnd": 5,
+      "provenance": "synthetic fixture",
+      "content": "# Synthetic ownership register\nVelocity rules owner: Maya Chen (sole maintainer).\nBusiness role: gates checkout approval.\nRunbook: not found in this fixture.\nRecorded dependency count: 17 (only representative edges are modelled)."
+    },
+    {
+      "id": "incident-log",
+      "title": "12 recent synthetic failures",
+      "type": "incident",
+      "repoId": "fraud-engine",
+      "path": "incidents/velocity-summary.md",
+      "lineStart": 1,
+      "lineEnd": 5,
+      "provenance": "synthetic fixture",
+      "content": "# Synthetic 30-day incident summary\nVelocity rules: 12 failed decision incidents.\nPattern: configuration reads slow down and a bypass skips validation.\nEvidence status: authored scenario, not ingested telemetry.\nThe demo rubric maps this exposure to 80/100."
+    },
+    {
+      "id": "tribal-note",
+      "title": "Partner exception, remembered in chat",
+      "type": "note",
+      "repoId": "shared-platform",
+      "path": "notes/partner-exception.md",
+      "lineStart": 1,
+      "lineEnd": 4,
+      "provenance": "synthetic fixture",
+      "content": "# Synthetic team note\nThe velocity bypass was added for a legacy partner launch.\nNo one linked a retirement date or a current runbook.\nVerify the exception with the business owner before removing it."
+    },
+    {
+      "id": "checkout-test",
+      "title": "CHK-432: checkout ordering",
+      "type": "test",
+      "repoId": "checkout-api",
+      "path": "tests/checkout.test.ts",
+      "lineStart": 1,
+      "lineEnd": 6,
+      "provenance": "synthetic fixture",
+      "content": "// Synthetic test record, not a claim of execution.\nTest CHK-432: fraud runs before payment authorisation.\nTest CHK-433: reservation precedes payment.\nTest CHK-434: rejected decisions do not call payments.\nTest CHK-435: checkout publishes an order event.\nCoverage does not establish the legacy adapter's behaviour."
+    },
+    {
+      "id": "legacy-source",
+      "title": "An opaque forwarding adapter",
+      "type": "source",
+      "repoId": "payments-api",
+      "path": "src/adapters/legacy.ts",
+      "lineStart": 1,
+      "lineEnd": 4,
+      "provenance": "synthetic fixture",
+      "content": "// Synthetic fragment: implementation beyond this boundary is absent.\nexport const forward = request => legacyGateway.send(request);\n// router.ts can select this adapter.\n// Owner, runtime traces, tests and docs are unknown."
+    },
+    {
+      "id": "payment-source",
+      "title": "Payment routing and ledger",
+      "type": "source",
+      "repoId": "payments-api",
+      "path": "src/payments.ts",
+      "lineStart": 1,
+      "lineEnd": 5,
+      "provenance": "synthetic fixture",
+      "content": "// Synthetic source snapshot.\nexport async function authorise(order, deps) {\n  const result = await deps.router.authorise(order);\n  return deps.ledger.record(order.id, result);\n}"
+    },
+    {
+      "id": "inventory-test",
+      "title": "INV-12: reservation contract",
+      "type": "test",
+      "repoId": "inventory-service",
+      "path": "tests/reservation.test.ts",
+      "lineStart": 1,
+      "lineEnd": 5,
+      "provenance": "synthetic fixture",
+      "content": "# Synthetic verification record\nINV-12: Inventory API reserves stock before returning success.\nReservation reads and updates the warehouse store atomically.\nRunbook and owner: Fulfilment team.\nTrace fixture: typical reservation completes in 28 ms."
+    },
+    {
+      "id": "platform-config",
+      "title": "Shared platform contracts",
+      "type": "runbook",
+      "repoId": "shared-platform",
+      "path": "docs/platform-contracts.md",
+      "lineStart": 1,
+      "lineEnd": 7,
+      "provenance": "synthetic fixture",
+      "content": "# Synthetic platform contract\nCheckout and Fraud share common feature configuration.\nStorefront calls Checkout and Recommendations.\nRecommendations delegates to Ranking, backed by Product cache.\nOwner: Platform team for settings, Discovery team for ranking.\nPotential blast radius must be verified with contract tests.\nThis is curated demo evidence, not a repository scan."
+    }
+  ],
+  "traces": [
+    {
+      "id": "checkout-normal",
+      "name": "Successful checkout",
+      "synthetic": true,
+      "description": "CHK-432 · normal decision, reservation, payment",
+      "spans": [
+        {
+          "id": "root",
+          "parentId": null,
+          "nodeId": "checkout-service",
+          "name": "POST /checkout",
+          "startMs": 0,
+          "durationMs": 640,
+          "status": "ok"
+        },
+        {
+          "id": "fraud",
+          "parentId": "root",
+          "nodeId": "fraud-service",
+          "name": "fraud.decide",
+          "startMs": 30,
+          "durationMs": 310,
+          "status": "ok"
+        },
+        {
+          "id": "velocity",
+          "parentId": "fraud",
+          "nodeId": "velocity",
+          "name": "velocity.evaluate",
+          "startMs": 45,
+          "durationMs": 280,
+          "status": "ok"
+        },
+        {
+          "id": "config",
+          "parentId": "velocity",
+          "nodeId": "legacy-config",
+          "name": "config.read",
+          "startMs": 50,
+          "durationMs": 55,
+          "status": "ok"
+        },
+        {
+          "id": "stock",
+          "parentId": "root",
+          "nodeId": "inventory-service",
+          "name": "inventory.reserve",
+          "startMs": 350,
+          "durationMs": 62,
+          "status": "ok"
+        },
+        {
+          "id": "pay",
+          "parentId": "root",
+          "nodeId": "payments-service",
+          "name": "payments.authorise",
+          "startMs": 430,
+          "durationMs": 180,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "id": "checkout-slow",
+      "name": "Slow configuration + retry",
+      "synthetic": true,
+      "description": "CHK-438 · configuration timeout, retry, eventual success",
+      "spans": [
+        {
+          "id": "root",
+          "parentId": null,
+          "nodeId": "checkout-service",
+          "name": "POST /checkout",
+          "startMs": 0,
+          "durationMs": 1820,
+          "status": "ok"
+        },
+        {
+          "id": "fraud",
+          "parentId": "root",
+          "nodeId": "fraud-service",
+          "name": "fraud.decide",
+          "startMs": 30,
+          "durationMs": 1450,
+          "status": "ok"
+        },
+        {
+          "id": "velocity",
+          "parentId": "fraud",
+          "nodeId": "velocity",
+          "name": "velocity.evaluate",
+          "startMs": 45,
+          "durationMs": 1400,
+          "status": "ok"
+        },
+        {
+          "id": "config-fail",
+          "parentId": "velocity",
+          "nodeId": "legacy-config",
+          "name": "config.read · timeout",
+          "startMs": 55,
+          "durationMs": 850,
+          "status": "error"
+        },
+        {
+          "id": "config-retry",
+          "parentId": "velocity",
+          "nodeId": "legacy-config",
+          "name": "config.read · retry",
+          "startMs": 965,
+          "durationMs": 420,
+          "status": "ok"
+        },
+        {
+          "id": "stock",
+          "parentId": "root",
+          "nodeId": "inventory-service",
+          "name": "inventory.reserve",
+          "startMs": 1490,
+          "durationMs": 62,
+          "status": "ok"
+        },
+        {
+          "id": "pay",
+          "parentId": "root",
+          "nodeId": "payments-service",
+          "name": "payments.authorise",
+          "startMs": 1570,
+          "durationMs": 180,
+          "status": "ok"
+        }
+      ]
+    }
+  ]
+}
