@@ -1,5 +1,13 @@
 # teardown
 
+## ShopSphere software-estate demo
+
+The new [ShopSphere app](demo/README.md) turns a fictional software estate into an interactive 3D twin, with recursive teardown, evidence inspection, risk visualisation, synthetic trace replay and a clearly labelled scripted investigator. It deploys to Railway as one service using the root `Dockerfile` and `railway.json`; leave Railway's Root Directory empty. No database or AI key is required.
+
+From `demo/`, use Node 24 and run `npm ci && npm run dev`. For production, `npm run build && npm start`. See the [demo guide](demo/README.md) for deployment instructions, the five-minute presenter script and scoring limitations. The mechanical simulator toolkit below is preserved unchanged.
+
+---
+
 A Claude Code skill that turns any machine into a 3D simulator you can take apart.
 
 Ask how something works. Claude builds it as one offline HTML page: the machine runs in the middle, every panel around it reads the real numbers, a button opens the part doing the work, and when nobody touches it the page tours itself.

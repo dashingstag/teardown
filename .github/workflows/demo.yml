@@ -1,0 +1,52 @@
+name: ShopSphere demo
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: demo/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Smoke test production routes
+        run: |
+          PORT=8080 npm start > /tmp/shopsphere.log 2>&1 &
+          trap 'cat /tmp/shopsphere.log' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/health; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8080/health
+          curl -fsS http://127.0.0.1:8080/ | grep -q 'id="root"'
+          curl -fsS http://127.0.0.1:8080/api/graph > /tmp/graph.json
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/missing)" = 404
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/missing.js)" = 404
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production image
+        run: docker build -t shopsphere-demo .
+      - name: Verify container health
+        run: |
+          docker run -d --name shopsphere -e PORT=8080 -p 8080:8080 shopsphere-demo
+          trap 'docker logs shopsphere; docker rm -f shopsphere' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/health; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8080/health
+          curl -fsS http://127.0.0.1:8080/ | grep -q 'id="root"'
