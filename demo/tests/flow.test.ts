@@ -30,7 +30,7 @@ test("flow progress clamps at span boundaries and distinguishes retry from timeo
   assert.equal(spanState(retry, 1385), "complete");
 });
 
-test("estate routes collapse graph edges without inventing a checkout call to the fraud capability", () => {
+test("estate routes collapse graph edges without moving internal fraud spans to a different capability", () => {
   const routes = projectRoutes(fixture, "shopsphere", normal);
   const inventory = routes.find(
     (r) => r.from === "checkout" && r.to === "inventory",
@@ -41,10 +41,11 @@ test("estate routes collapse graph edges without inventing a checkout call to th
     routes.find((r) => r.from === "checkout" && r.to === "payments")!.spanIds,
     ["pay"],
   );
-  assert.equal(
-    routes.some((r) => r.from === "checkout" && r.to === "fraud"),
-    false,
-  );
+  const analytics = routes.find(
+    (r) => r.from === "checkout" && r.to === "fraud",
+  )!;
+  assert.deepEqual(analytics.edgeIds, ["e18", "e19"]);
+  assert.deepEqual(analytics.spanIds, []);
   assert.ok(routes.some((r) => r.from === "portal" && r.to === "checkout"));
   assert.ok(routes.every((r) => r.from !== r.to));
 });
