@@ -668,7 +668,7 @@ kbd,
   margin: 0 4px;
 }
 .scene-area {
-  height: clamp(380px, 46vh, 660px);
+  height: clamp(510px, 61vh, 800px);
   position: relative;
   overflow: hidden;
 }
@@ -749,6 +749,316 @@ kbd,
 }
 .node-label.trace-active {
   box-shadow: 0 0 18px #5ad5bb44;
+}
+.sculpture-label {
+  border-color: #365168;
+  background: #0c1b2ce8;
+  padding: 8px 11px;
+  border-radius: 7px;
+  backdrop-filter: blur(8px);
+  text-align: left;
+}
+.sculpture-label small {
+  display: block;
+  margin: 5px 0 0;
+  letter-spacing: 1px;
+  font-size: 7px;
+}
+.sculpture-label.trace-active {
+  border-color: #75f2d0;
+  box-shadow: 0 0 22px #5ad5bb55;
+}
+.sculpture-label.trace-error {
+  border-color: #ff727f;
+  box-shadow: 0 0 22px #ff727f44;
+}
+.scene-story {
+  position: absolute;
+  top: 65px;
+  left: 22px;
+  right: 22px;
+  z-index: 11;
+  pointer-events: none;
+}
+.scene-story > span {
+  font: 8px monospace;
+  letter-spacing: 2px;
+  color: #6a9dad;
+}
+.scene-story p {
+  font-size: clamp(15px, 1.7vw, 23px);
+  font-weight: 450;
+  letter-spacing: -0.5px;
+  margin: 8px 0 6px;
+  color: #d2e8f4;
+}
+.scene-story small {
+  font-size: 9px;
+  line-height: 1.5;
+  color: #7690a6;
+}
+.scene-area:has(.map-list) .scene-story {
+  display: none;
+}
+.scene-flow-control {
+  position: absolute;
+  bottom: 48px;
+  right: 18px;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #548e9c;
+  background: #12323fe8;
+  color: #b5f9ee;
+  padding: 10px 12px;
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 3px 20px #0005;
+  font-size: 10px;
+}
+.scene-flow-control:hover {
+  border-color: #9af3dc;
+  background: #1c4b52;
+}
+.scene-flow-control code {
+  font-size: 8px;
+  color: #719faf;
+}
+.flow-journey {
+  background:
+    radial-gradient(ellipse at 30% 0%, #16344780, transparent 65%), #0c1826;
+  border-top: 1px solid #2c4357;
+  padding: 20px;
+}
+.flow-journey > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.flow-journey .eyebrow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 8px;
+  color: #78b8c3;
+}
+.flow-journey h3 {
+  font-size: 16px;
+  font-weight: 450;
+  letter-spacing: -0.3px;
+  margin-top: 7px;
+}
+.flow-watch {
+  border: 1px solid #43867e;
+  border-radius: 6px;
+  background: #153b3e;
+  color: #b8ffee;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 11px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.flow-watch:hover {
+  background: #205053;
+}
+.flow-stages {
+  display: flex;
+  gap: 13px;
+  overflow-x: auto;
+  padding: 2px 1px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #35536b transparent;
+}
+.flow-stage {
+  flex: 1 0 85px;
+  position: relative;
+  min-width: 0;
+  border: 1px solid #2c435a;
+  border-radius: 7px;
+  padding: 11px 9px;
+  background: linear-gradient(155deg, #1a2c41, #102032 75%);
+  text-align: left;
+  color: #8caac2;
+  transition:
+    border-color 0.25s,
+    background 0.25s,
+    box-shadow 0.25s;
+}
+.flow-stage:not(:last-child):after {
+  content: "";
+  position: absolute;
+  right: -14px;
+  top: 56px;
+  width: 13px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, #74e8db 0 4px, #244357 4px 8px);
+  background-size: 16px 2px;
+  animation: route-stream 0.8s linear infinite;
+}
+.flow-journey[data-animate="false"] .flow-stage:after {
+  animation-play-state: paused;
+}
+.flow-stage-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  font: 6px monospace;
+  letter-spacing: 0.4px;
+}
+.flow-stage-top > span:first-child {
+  color: #66849f;
+}
+.flow-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #3b5c76;
+  background: #173047;
+  border-radius: 11px;
+  margin: 14px 0;
+  box-shadow: inset 0 0 14px #63d9cd08;
+}
+.flow-stage strong {
+  display: block;
+  font-size: 10px;
+  line-height: 1.4;
+  font-weight: 500;
+  min-height: 28px;
+  color: #c2d5e5;
+}
+.flow-stage > small {
+  display: block;
+  font: 7px monospace;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  margin: 5px 0 14px;
+  min-height: 22px;
+}
+.flow-stage-time {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: 14px monospace;
+}
+.flow-stage-time small {
+  font-size: 7px;
+  margin-left: 2px;
+}
+.flow-stage-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: currentColor;
+  max-width: 100%;
+}
+.flow-stage:hover {
+  border-color: #84b3cb;
+}
+.flow-stage.active {
+  border-color: #66e7cc;
+  background: linear-gradient(155deg, #184c4c, #122f3c);
+  box-shadow:
+    0 0 24px #57e8c51a,
+    inset 0 0 20px #57e8c509;
+  color: #7fffe4;
+}
+.flow-stage.active .flow-glyph {
+  background: #1d5155;
+  border-color: #73dac7;
+  box-shadow: 0 0 15px #5cebc333;
+}
+.flow-stage.complete {
+  color: #72b7aa;
+  border-color: #315d58;
+}
+.flow-stage.complete .flow-glyph {
+  color: #80d1bd;
+}
+.flow-stage.error,
+.flow-stage.timing-out {
+  border-color: #df7587;
+  color: #ff9dae;
+  background: linear-gradient(155deg, #522c40, #271f32);
+}
+.flow-stage.error .flow-glyph,
+.flow-stage.timing-out .flow-glyph {
+  background: #472c41;
+  border-color: #a85b72;
+  color: #ff9dae;
+}
+.flow-journey > footer {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #6e91a7;
+  font-size: 8px;
+  margin-top: 5px;
+  line-height: 1.6;
+}
+.flow-indicator {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #5c7f96;
+  flex-shrink: 0;
+}
+.flow-indicator.running {
+  background: #7fffe4;
+  box-shadow: 0 0 9px #7fffe4;
+}
+.flow-synthetic {
+  margin-left: auto;
+  font: 6px monospace;
+  letter-spacing: 0.7px;
+  white-space: nowrap;
+}
+@keyframes route-stream {
+  to {
+    background-position: 16px 0;
+  }
+}
+@media (max-width: 600px) {
+  .scene-story {
+    top: 56px;
+    left: 14px;
+    right: 14px;
+  }
+  .scene-story p {
+    font-size: 17px;
+    max-width: 230px;
+  }
+  .scene-story small {
+    display: block;
+    max-width: 235px;
+    font-size: 8px;
+  }
+  .flow-journey {
+    padding: 15px 12px;
+  }
+  .flow-journey h3 {
+    font-size: 13px;
+  }
+  .flow-watch {
+    font-size: 9px;
+    padding: 9px;
+  }
+  .flow-watch > svg:last-child {
+    display: none;
+  }
+  .flow-stage {
+    flex-basis: 102px;
+  }
+  .flow-synthetic {
+    display: none;
+  }
 }
 .scene-bottomline {
   position: absolute;

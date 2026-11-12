@@ -42,10 +42,12 @@ docker run --rm -p 8080:8080 -e PORT=8080 shopsphere
 ## Demo controls
 
 - Click a module to inspect; double-click or choose **Take it apart** to dive. Drag to orbit, scroll to zoom.
-- The explorer and **2D list view** provide keyboard/touch alternatives. WebGL failure offers the 2D fallback. Reduced motion disables smooth camera flights and floating geometry.
+- The explorer and **2D list view** provide keyboard/touch alternatives. WebGL failure offers the 2D fallback. Reduced motion disables ambient animation and smooth camera flights; explicit trace playback/scrubbing remains available.
+- The estate opens exploded, with distinct processor, scanner, database, portal, ledger and recommendation sculptures. Luminous directional routes show projected graph dependencies. Ambient packets are illustrative, not measured traffic; use **Pause ambient animation** in the toolbar to freeze them.
+- **Watch the flow** starts the authored checkout trace. The visual request journey shows each span, progress, completion, timeout and retry; choose a stage to pause at that span and inspect its node. Parent and child spans overlap (the waterfall preserves their timing). Runtime packets illustrate span progress, not network transit time; collapsed routes retain their underlying graph edges and trace spans. Active modules glow mint (processing) or red (a timeout span); idle runtime colours still reflect the separate fixture health metrics.
 - Search by component, repository or description; Ctrl/Cmd+K opens search.
 - **Architecture / Risk / Runtime** switch visual lenses. Unknown is purple, not healthy. Collapsed risk is maximum known assessed descendant risk; the inspector also reports unknown descendants. The runtime colour of a collapsed group reflects its worst known descendant error rate, not a measured group-level latency.
-- **Runtime traces** exposes the replay, scrubber, scenario and speed controls. Playback is deliberately slowed 5×; span durations remain actual fixture milliseconds.
+- **Runtime traces** exposes the replay, scrubber, scenario and speed controls. Playback is deliberately slowed 10× at the 1× speed setting; span durations remain actual fixture milliseconds. Pausing freezes trace progress and its request packets; ambient animation has a separate control.
 - **Follow the risk** steps through Checkout, Fraud decision service, Velocity rules, VelocityRule and evaluate(). Stop, select another module or Reset to interrupt it. The legacy configuration evidence opens from the completion banner.
 - **Ask the investigator** supports the four displayed question families. It is a labelled deterministic graph/template demonstration, not live AI. Its impact answer is contextual to the selected node. Out-of-scope questions are disclosed rather than invented.
 - Reset restores the initial scene, lens, trace, selection and investigator. `?node=<id>` is a shareable selection, not shared server state.
