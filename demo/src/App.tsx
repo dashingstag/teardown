@@ -7,6 +7,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import FlowJourney from "./FlowJourney";
+import { spanState } from "./flow";
 import {
   Activity,
   ArrowDownRight,
@@ -130,7 +132,8 @@ function Workspace({ fixture }: { fixture: Fixture }) {
   const [scopeId, setScopeId] = useState(start?.parentId ?? "shopsphere");
   const [lens, setLens] = useState<Lens>("architecture");
   const [view, setView] = useState<"3d" | "list">("3d");
-  const [exploded, setExploded] = useState(false);
+  const [exploded, setExploded] = useState(true);
+  const [motion, setMotion] = useState(true);
   const [resetKey, setResetKey] = useState(0);
   const [treeOpen, setTreeOpen] = useState(false);
   const [inspectorOpen, setInspectorOpen] = useState(false);
@@ -216,7 +219,7 @@ function Workspace({ fixture }: { fixture: Fixture }) {
     const tick = (now: number) => {
       const delta = Math.min(now - previous, 100);
       previous = now;
-      setTraceTime((t) => Math.min(duration, t + (delta * speed) / 5));
+      setTraceTime((t) => Math.min(duration, t + (delta * speed) / 10));
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
@@ -256,7 +259,8 @@ function Workspace({ fixture }: { fixture: Fixture }) {
     setSelectedId("shopsphere");
     setScopeId("shopsphere");
     setLens("architecture");
-    setExploded(false);
+    setExploded(true);
+    setMotion(true);
     setResetKey((k) => k + 1);
     setPlaying(false);
     setTraceTime(0);
@@ -599,7 +603,7 @@ function Workspace({ fixture }: { fixture: Fixture }) {
               <h1>
                 ShopSphere<span className="environment-tag">DEMO ESTATE</span>
               </h1>
-              <p>Understand the system. Find the unknowns.</p>
+              <p>See the flow. Follow the risk. Find the unknowns.</p>
             </div>
             <div className="heading-actions">
               <button
@@ -675,6 +679,7 @@ function Workspace({ fixture }: { fixture: Fixture }) {
                     onClick={() => {
                       stopFollow();
                       setLens(t.id);
+                      if (t.id !== "runtime") setPlaying(false);
                     }}
                   >
                     <t.icon size={14} />
@@ -683,6 +688,29 @@ function Workspace({ fixture }: { fixture: Fixture }) {
                 ))}
               </div>
               <div className="view-actions">
+                <button
+                  className={`icon-button ${motion && !reducedMotion ? "active" : ""}`}
+                  aria-label={
+                    motion && !reducedMotion
+                      ? "Pause ambient animation"
+                      : "Resume ambient animation"
+                  }
+                  title={
+                    reducedMotion
+                      ? "Reduced motion is enabled on your device"
+                      : "Toggle illustrative flow animation"
+                  }
+                  aria-pressed={motion && !reducedMotion}
+                  disabled={reducedMotion}
+                  onClick={() => setMotion(!motion)}
+                >
+                  {motion && !reducedMotion ? (
+                    <Pause size={15} />
+                  ) : (
+                    <Play size={15} />
+                  )}
+                </button>
+                <span />
                 <button
                   className={`icon-button ${view === "3d" ? "active" : ""}`}
                   aria-label="3D view"
@@ -709,7 +737,9 @@ function Workspace({ fixture }: { fixture: Fixture }) {
                 </button>
               </div>
             </div>
-            <div className="scene-area">
+            <div
+              className={`scene-area ${!motion || reducedMotion ? "motion-paused" : ""}`}
+            >
               <div className="scene-topline">
                 <span>
                   <span className="status-dot" /> {scope.name.toUpperCase()}{" "}
@@ -723,6 +753,53 @@ function Workspace({ fixture }: { fixture: Fixture }) {
                   {exploded ? "Reassemble" : "Explode view"}
                 </button>
               </div>
+              <div className="scene-story">
+                <span>
+                  {lens === "runtime"
+                    ? "SPAN PLAYBACK"
+                    : lens === "risk"
+                      ? "RISK LANDSCAPE"
+                      : "THE LIVING ARCHITECTURE"}
+                </span>
+                <p>
+                  {lens === "runtime"
+                    ? "A request, made visible."
+                    : lens === "risk"
+                      ? "Every connection carries consequence."
+                      : "Not a codebase. An ecosystem."}
+                </p>
+                <small>
+                  {lens === "runtime"
+                    ? "Packet position illustrates span progress, not network travel time."
+                    : "Illustrative packets on evidence-backed dependencies · not live traffic"}
+                </small>
+              </div>
+              <button
+                className="scene-flow-control"
+                onClick={() => {
+                  if (lens !== "runtime") replay();
+                  else {
+                    if (traceTime >= duration) setTraceTime(0);
+                    setPlaying(!playing);
+                  }
+                }}
+              >
+                {playing && lens === "runtime" ? (
+                  <Pause size={14} />
+                ) : (
+                  <Play size={14} />
+                )}
+                {lens !== "runtime"
+                  ? "Watch the flow"
+                  : playing
+                    ? "Pause visual flow"
+                    : "Play visual flow"}
+                {lens === "runtime" && (
+                  <code>
+                    {Math.round(traceTime)} / {duration} ms
+                  </code>
+                )}
+              </button>
               {view === "3d" ? (
                 <SceneBoundary
                   fallback={
@@ -754,6 +831,9 @@ function Workspace({ fixture }: { fixture: Fixture }) {
                       exploded={exploded}
                       activeIds={activeIds}
                       reducedMotion={reducedMotion}
+                      motion={motion}
+                      trace={trace}
+                      traceTime={traceTime}
                       resetKey={resetKey}
                       onSelect={select}
                       onDive={dive}
@@ -854,6 +934,21 @@ function Workspace({ fixture }: { fixture: Fixture }) {
                 Inspect selected <ChevronRight size={13} />
               </button>
             </div>
+            <FlowJourney
+              fixture={fixture}
+              trace={trace}
+              time={traceTime}
+              runtime={lens === "runtime"}
+              playing={playing && lens === "runtime"}
+              motion={motion && !reducedMotion}
+              onReplay={replay}
+              onInspect={(span) => {
+                setLens("runtime");
+                setPlaying(false);
+                setTraceTime(span.startMs + Math.min(40, span.durationMs / 2));
+                select(span.nodeId, true);
+              }}
+            />
             {lens === "runtime" && (
               <div className="trace-panel">
                 <div className="trace-header">
@@ -915,7 +1010,7 @@ function Workspace({ fixture }: { fixture: Fixture }) {
                   {trace.spans.map((span) => (
                     <button
                       key={span.id}
-                      className={`trace-span ${activeIds.includes(span.nodeId) ? "active" : ""}`}
+                      className={`trace-span ${spanState(span, traceTime) === "active" ? "active" : ""}`}
                       onClick={() => select(span.nodeId, true)}
                     >
                       <span>{span.name}</span>
@@ -934,7 +1029,7 @@ function Workspace({ fixture }: { fixture: Fixture }) {
                   ))}
                 </div>
                 <small className="muted">
-                  Authored span replay · slowed 5× for visibility · no live
+                  Authored span replay · slowed 10× at 1× speed · no live
                   telemetry
                 </small>
               </div>
